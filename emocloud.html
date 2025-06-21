@@ -90,17 +90,17 @@
             draggable: !mapLocked,
             gestureHandling: mapLocked ? "none" : "greedy",
             zoomControl: !mapLocked,
-        });
+          });
 
-        this.textContent = mapLocked
+          this.textContent = mapLocked
             ? "操作モードを有効にする"
             : "操作モードを終了する";
 
-        // 操作モード終了時に中心を現在地に戻す
-        if (mapLocked && currentLocation) {
+          // 操作モード終了時に中心を現在地に戻す
+          if (mapLocked && currentLocation) {
             map.setCenter(currentLocation);
         }
-    });
+      });
 
         // 現在地取得とマーカー表示
         if (navigator.geolocation) {
