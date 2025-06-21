@@ -143,6 +143,44 @@
             }
         });
     }
+
+    // POST処理関数
+    async function postDataToEmocloud(color, latitude, longitude, timestamp) {
+      const url = 'https://tyho3rn3ca.execute-api.ap-southeast-2.amazonaws.com/emocloudData';
+
+      const payload = {
+        color: color,
+        latitude: latitude,
+        longitude: longitude,
+        timestamp: timestamp
+      };
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        const text = await response.text();
+        const parsed = JSON.parse(text);
+        console.log('送信成功:', parsed);
+        return parsed;
+
+      } catch (error) {
+        console.error('送信エラー:', error.message);
+        return null;
+      }
+    }
+
+
     </script>
 
     <script
