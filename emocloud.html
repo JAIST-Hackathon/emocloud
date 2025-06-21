@@ -4,7 +4,8 @@
     <title>マップ</title>
     <meta charset="utf-8" />
     <style>
-      html, body {
+      html,
+      body {
         height: 100%;
         margin: 0;
         padding: 0;
@@ -31,6 +32,98 @@
         height: 100%;
         width: 100%;
       }
+      #emotion-input-container {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.9); /* 半透明の背景 */
+        padding: 10px 0;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        z-index: 2;
+        display: flex;
+        flex-direction: column; /* アイコンとボタンを縦に並べる */
+        align-items: center;
+        gap: 10px; /* 要素間の隙間 */
+      }
+
+      .emotion-icons {
+        display: flex;
+        gap: 15px; /* アイコン間の隙間 */
+        justify-content: center;
+        width: 100%;
+        padding: 0 10px; /* 端に余白 */
+      }
+
+      .emotion-icon {
+        width: 72px; /* タップしやすいサイズ */
+        height: 72px;
+        background-color: #007aff; /* ボタンの背景色 */
+        border: none;
+        border-radius: 50%; /* 円形にする */
+        cursor: pointer;
+        display: flex; /* SVGを中央に配置するためにflexを使用 */
+        justify-content: center;
+        align-items: center;
+        transition: background-color 0.2s ease;
+        flex-shrink: 0; /* 小さな画面でアイコンが縮まないように */
+      }
+
+      .emotion-icon:hover {
+        background-color: #0056b3;
+      }
+
+      /* 各感情アイコンのスタイル (提供されたもの) */
+      .bi--emoji-angry-fill::after {
+        display: inline-block;
+        width: 64px; /* SVGの表示サイズ */
+        height: 64px;
+        vertical-align: middle; /* 垂直方向の中央揃え */
+        content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23fff' d='M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16M4.053 4.276a.5.5 0 0 1 .67-.223l2 1a.5.5 0 0 1 .166.76c.071.206.111.44.111.687C7 7.328 6.552 8 6 8s-1-.672-1-1.5c0-.408.109-.778.285-1.049l-1.009-.504a.5.5 0 0 1-.223-.67zm.232 8.157a.5.5 0 0 1-.183-.683A4.5 4.5 0 0 1 8 9.5a4.5 4.5 0 0 1 3.898 2.25a.5.5 0 1 1-.866.5A3.5 3.5 0 0 0 8 10.5a3.5 3.5 0 0 0-3.032 1.75a.5.5 0 0 1-.683.183M10 8c-.552 0-1-.672-1-1.5c0-.247.04-.48.11-.686a.502.502 0 0 1 .166-.761l2-1a.5.5 0 1 1 .448.894l-1.009.504c.176.27.285.64.285 1.049c0 .828-.448 1.5-1 1.5'/%3E%3C/svg%3E");
+      }
+
+      .mdi--emoji-cry::after {
+        display: inline-block;
+        width: 64px;
+        height: 64px;
+        vertical-align: middle;
+        content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M5.14 17.57c0-1.07 1.18-3.07 2.43-4.76C8.82 14.5 10 16.5 10 17.57A2.43 2.43 0 0 1 7.57 20c-1.34 0-2.43-1.09-2.43-2.43M22 12a10 10 0 0 1-10 10c-.92 0-1.82-.14-2.67-.37A4.42 4.42 0 0 0 12 17.57c0-.45-.11-.97-.31-1.57H12c1.25 0 2.32.5 2.77 1.23l1.42-1.42C15.29 14.72 13.75 14 12 14c-.41 0-.81.04-1.19.12c-.43-.76-.96-1.59-1.62-2.49L8.71 11c.71-.13 1.29-.77 1.29-1.5C10 8.7 9.3 8 8.5 8S7 8.7 7 9.5c0 .19.04.37.11.54l-1.15 1.59C4.4 13.75 3.5 15.5 3.23 16.81C2.45 15.38 2 13.74 2 12A10 10 0 0 1 12 2a10 10 0 0 1 10 10m-5-2.5c0-.8-.7-1.5-1.5-1.5S14 8.7 14 9.5s.7 1.5 1.5 1.5s1.5-.7 1.5-1.5'/%3E%3C/svg%3E");
+      }
+
+      .mdi--emoji-lol::after {
+        display: inline-block;
+        width: 64px;
+        height: 64px;
+        vertical-align: middle;
+        content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M15.07 8.93v-4a4.06 4.06 0 0 1 .66-2.21a10 10 0 0 0-13 13a4.06 4.06 0 0 1 2.21-.66h4v4a4.06 4.06 0 0 1-.66 2.21a10 10 0 0 0 13-13a4.06 4.06 0 0 1-2.21.66M11 6h1.5v1.5H14V9h-3m-3.5 5v-1.5H6V11h3v3m6.89 1.9A5.5 5.5 0 0 1 9.8 17L17 9.8a5.5 5.5 0 0 1-1.11 6.09m-11 5.19a2 2 0 0 1-2-2a2 2 0 0 1 2-2h2v2a2 2 0 0 1-1.96 1.99M19.07 2.93a2 2 0 0 1 2 2a2 2 0 0 1-2 2h-2v-2a2 2 0 0 1 2-2'/%3E%3C/svg%3E");
+      }
+
+      .fluent--emoji-laugh-24-filled::after {
+        display: inline-block;
+        width: 64px;
+        height: 64px;
+        vertical-align: middle;
+        content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10s10-4.477 10-10S17.523 2 12 2m2.492 7.36a.75.75 0 1 1-1.484-.22c.162-1.09 1.123-1.89 2.242-1.89s2.08.8 2.242 1.89a.75.75 0 1 1-1.484.22c-.048-.323-.35-.61-.758-.61s-.71.287-.758.61M12 18c-3.142 0-5.237-2.363-5.5-5.25h11C17.237 15.637 15.142 18 12 18M8.75 8.75c-.408 0-.71.287-.758.61a.75.75 0 1 1-1.484-.22C6.67 8.05 7.631 7.25 8.75 7.25s2.08.8 2.242 1.89a.75.75 0 1 1-1.484.22c-.048-.323-.35-.61-.758-.61'/%3E%3C/svg%3E");
+      }
+
+      /* 確定ボタンのスタイル */
+      #submit-emotion {
+        padding: 12px 25px;
+        background-color: #28a745; /* 緑色のボタン */
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        width: calc(100% - 40px); /* 左右に余白を持たせる */
+        max-width: 300px; /* ボタンの最大幅 */
+      }
+
+      #submit-emotion:hover {
+        background-color: #218838;
+      }
     </style>
   </head>
   <body>
@@ -43,6 +136,34 @@
       </select>
     </div>
     <button id="toggleMapControl">操作モードを有効にする</button>
+
+    <div id="emotion-input-container">
+      # 感情のインプット
+      <div class="emotion-icons">
+        <button
+          id="emotion-happy"
+          class="emotion-icon fluent--emoji-laugh-24-filled"
+          aria-label="面白い"
+        ></button>
+        <button
+          id="emotion-angry"
+          class="emotion-icon bi--emoji-angry-fill"
+          aria-label="怒り"
+        ></button>
+        <button
+          id="emotion-sad"
+          class="emotion-icon mdi--emoji-cry"
+          aria-label="悲しい"
+        ></button>
+        <button
+          id="emotion-joy"
+          class="emotion-icon mdi--emoji-lol"
+          aria-label="楽しい"
+        ></button>
+      </div>
+      <button id="submit-emotion">感情を確定</button>
+    </div>
+
     <div id="map"></div>
 
     <script>
@@ -63,9 +184,17 @@
             { elementType: "labels", stylers: [{ visibility: "off" }] },
             { featureType: "administrative", stylers: [{ visibility: "off" }] },
             { featureType: "poi", stylers: [{ visibility: "off" }] },
-            { featureType: "road", elementType: "geometry", stylers: [{ color: "#cccccc" }] },
+            {
+              featureType: "road",
+              elementType: "geometry",
+              stylers: [{ color: "#cccccc" }],
+            },
             { featureType: "transit", stylers: [{ visibility: "off" }] },
-            { featureType: "water", elementType: "geometry", stylers: [{ color: "#e0e0e0" }] }
+            {
+              featureType: "water",
+              elementType: "geometry",
+              stylers: [{ color: "#e0e0e0" }],
+            },
           ],
           { name: "Gray No Labels" }
         );
@@ -83,109 +212,112 @@
         map.setMapTypeId("styled_map");
 
         // 操作切り替えボタンの処理
-        document.getElementById("toggleMapControl").addEventListener("click", function () {
-          mapLocked = !mapLocked;
+        document
+          .getElementById("toggleMapControl")
+          .addEventListener("click", function () {
+            mapLocked = !mapLocked;
 
-          map.setOptions({
-            draggable: !mapLocked,
-            gestureHandling: mapLocked ? "none" : "greedy",
-            zoomControl: !mapLocked,
-        });
+            map.setOptions({
+              draggable: !mapLocked,
+              gestureHandling: mapLocked ? "none" : "greedy",
+              zoomControl: !mapLocked,
+            });
 
-        this.textContent = mapLocked
-            ? "操作モードを有効にする"
-            : "操作モードを終了する";
+            this.textContent = mapLocked
+              ? "操作モードを有効にする"
+              : "操作モードを終了する";
 
-        // 操作モード終了時に中心を現在地に戻す
-        if (mapLocked && currentLocation) {
-            map.setCenter(currentLocation);
-        }
-    });
+            // 操作モード終了時に中心を現在地に戻す
+            if (mapLocked && currentLocation) {
+              map.setCenter(currentLocation);
+            }
+          });
 
         // 現在地取得とマーカー表示
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
+          navigator.geolocation.getCurrentPosition(
             (position) => {
-                currentLocation = {
+              currentLocation = {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude,
-            };
+              };
 
-            const selectedDistance = document.getElementById("range").value;
-            map.setCenter(currentLocation);
-            map.setZoom(zoomLevels[selectedDistance]);
+              const selectedDistance = document.getElementById("range").value;
+              map.setCenter(currentLocation);
+              map.setZoom(zoomLevels[selectedDistance]);
 
-            new google.maps.Marker({
+              new google.maps.Marker({
                 position: currentLocation,
                 map: map,
                 title: "あなたの現在地",
                 icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 7,
-                    fillColor: "#007AFF",
-                    fillOpacity: 1,
-                    strokeWeight: 2,
-                    strokeColor: "#ffffff",
+                  path: google.maps.SymbolPath.CIRCLE,
+                  scale: 7,
+                  fillColor: "#007AFF",
+                  fillOpacity: 1,
+                  strokeWeight: 2,
+                  strokeColor: "#ffffff",
                 },
-            });
+              });
             },
             () => alert("現在地を取得できませんでした。")
-        );
+          );
         } else {
-            alert("このブラウザは位置情報に対応していません。");
+          alert("このブラウザは位置情報に対応していません。");
         }
 
         // 範囲変更イベント
-        document.getElementById("range").addEventListener("change", function () {
+        document
+          .getElementById("range")
+          .addEventListener("change", function () {
             const zoom = zoomLevels[this.value];
             if (map && currentLocation) {
-                map.setZoom(zoom);
+              map.setZoom(zoom);
             }
-        });
-    }
-
-    // POST処理関数
-    async function postDataToEmocloud(color, latitude, longitude, timestamp) {
-      const url = 'https://tyho3rn3ca.execute-api.ap-southeast-2.amazonaws.com/emocloudData';
-
-      const payload = {
-        color,
-        latitude,
-        longitude,
-        timestamp
-      };
-
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-
-        const text = await response.text();
-        const parsed = JSON.parse(text);
-        console.log('送信成功:', parsed);
-        return parsed;
-
-      } catch (error) {
-        console.error('送信エラー:', error.message);
-        return null;
+          });
       }
-    }
 
+      // POST処理関数
+      async function postDataToEmocloud(color, latitude, longitude, timestamp) {
+        const url =
+          "https://tyho3rn3ca.execute-api.ap-southeast-2.amazonaws.com/emocloudData";
 
+        const payload = {
+          color,
+          latitude,
+          longitude,
+          timestamp,
+        };
+
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+          }
+
+          const text = await response.text();
+          const parsed = JSON.parse(text);
+          console.log("送信成功:", parsed);
+          return parsed;
+        } catch (error) {
+          console.error("送信エラー:", error.message);
+          return null;
+        }
+      }
     </script>
 
     <script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC0gZqkL68rgvnjUU7fNmVfRyydR-lDBaA&callback=initMap"
-        async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC0gZqkL68rgvnjUU7fNmVfRyydR-lDBaA&callback=initMap"
+      async
+      defer
     ></script>
-    </body>
+  </body>
 </html>
