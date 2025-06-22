@@ -150,26 +150,40 @@ export function GoogleMap({ onLocationChange }: GoogleMapProps) {
 	};
 
 	const fetchAndDisplayEmotionMapData = async () => {
-		const emotionData = await fetchEmotionMapData();
-		if (emotionData && mapInstanceRef.current) {
-			clearMarkers();
+		try {
+			const emotionData = await fetchEmotionMapData();
 
-			emotionData.forEach((data) => {
-				const marker = new window.google.maps.Marker({
-					position: { lat: data.latitude, lng: data.longitude },
-					map: mapInstanceRef.current,
-					icon: {
-						path: window.google.maps.SymbolPath.CIRCLE,
-						scale: 10,
-						fillColor: data.color,
-						fillOpacity: 0.7,
-						strokeWeight: 1,
-						strokeColor: "#ffffff",
-					},
-					title: `感情: ${data.color}, 時刻: ${new Date(data.timestamp).toLocaleString()}`,
+			if (!emotionData) {
+				console.error("感情マップデータの取得に失敗しました。");
+				return;
+			}
+
+			console.log(typeof (emotionData));
+			console.log("感情マップデータ:", emotionData);
+
+			if (emotionData && mapInstanceRef.current) {
+				clearMarkers();
+
+				emotionData.forEach((data) => {
+					const marker = new window.google.maps.Marker({
+						position: { lat: data.lat, lng: data.lng },
+						map: mapInstanceRef.current,
+						icon: {
+							path: window.google.maps.SymbolPath.CIRCLE,
+							scale: 10,
+							fillColor: data.color,
+							fillOpacity: 0.7,
+							strokeWeight: 1,
+							strokeColor: "#ffffff",
+						},
+						title: `感情: ${data.color}, 時刻: ${new Date(data.timestamp).toLocaleString()}`,
+					});
+					markersRef.current.push(marker);
 				});
-				markersRef.current.push(marker);
-			});
+			}
+
+		} catch (e) {
+			console.error("感情マップデータのフェッチ中にエラーが発生しました:", e);
 		}
 	};
 

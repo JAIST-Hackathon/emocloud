@@ -1,7 +1,7 @@
 export interface EmotionData {
 	color: string;
-	latitude: number;
-	longitude: number;
+	lat: number;
+	lng: number;
 	timestamp: string;
 }
 
