@@ -102,8 +102,10 @@ export async function fetchEmotionMapData(): Promise<EmotionData[]> {
 
 	console.log("取得するタイムスタンプ:", encodedTimestamp);
 
+	const apiUrl = process.env.NEXT_PUBLIC_GET_API_URL;
+
 	try {
-		const response = await fetch(`https://xazunmdid7.execute-api.ap-southeast-2.amazonaws.com/prod/data?timestamp=${encodedTimestamp}`);
+		const response = await fetch(`${apiUrl}?timestamp=${encodedTimestamp}`);
 		if (!response.ok) {
 			throw new Error(`HTTPエラー: ${response.status}`);
 		}
