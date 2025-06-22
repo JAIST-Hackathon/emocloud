@@ -78,3 +78,4 @@ tmp/               # 一時ファイルを格納する共通ディレクトリ
 # my_project_specific_data.db # プロジェクト固有のローカルDBファイルなど
 # /user_uploads/             # ユーザーアップロードディレクトリなど
 node_modules
+.next
