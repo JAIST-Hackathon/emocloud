@@ -296,31 +296,29 @@
         map.mapTypes.set("styled_map", styledMapType);
         map.setMapTypeId("styled_map");
 
-        // --- イベントリスナー設定 ---
-
         // 地図操作モード切り替えボタンのイベントリスナー
-        document
-          .getElementById("toggleMapControl")
-          .addEventListener("click", function () {
-            mapLocked = !mapLocked; // ロック状態を切り替え
+document
+  .getElementById("toggleMapControl")
+  .addEventListener("click", function () {
+    mapLocked = !mapLocked; // ロック状態を切り替え
 
-            // 地図の操作オプションを更新 (ロック状態に応じてドラッグ、ジェスチャー、ズームコントロールを切り替え)
-            map.setOptions({
-              draggable: !mapLocked,
-              gestureHandling: mapLocked ? "none" : "greedy", // greedyは常にジェスチャーを処理
-              zoomControl: !mapLocked, // ズームコントロールの表示/非表示
-            });
+    // 地図の操作オプションを更新 (ロック状態に応じてドラッグ、ジェスチャー、ズームコントロールを切り替え)
+    map.setOptions({
+      draggable: !mapLocked,
+      gestureHandling: mapLocked ? "none" : "greedy", // greedy は常にジェスチャーを処理
+      zoomControl: !mapLocked,                        // ズームコントロールの表示 / 非表示
+    });
 
-            // ボタンのテキストを更新
-            this.textContent = mapLocked
-              ? "操作モードを有効にする"
-              : "操作モードを終了する";
+    // ボタンのテキストを更新
+    this.textContent = mapLocked
+      ? "操作モードを有効にする"
+      : "操作モードを終了する";
 
-            // 操作モード終了時に地図の中心を現在地に戻す
-            if (mapLocked && currentLocation) {
-              map.setCenter(currentLocation);
-            }
-          });
+    // 操作モード終了時に地図の中心を現在地に戻す
+    if (mapLocked && currentLocation) {
+      map.setCenter(currentLocation);
+    }
+  });
 
         // 現在地取得とマーカー表示
         if (navigator.geolocation) {
