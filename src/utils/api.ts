@@ -1,36 +1,77 @@
 import type { EmotionData } from "@/types/emotion";
 
 /**
- * 感情データを送信する関数
+ * 感情データをAWS API Gatewayに送信する関数
  */
 export async function postEmotionData(
-	color: string,
-	latitude: number,
-	longitude: number,
-	timestamp: string,
-): Promise<{ success: boolean; message: string }> {
-	try {
-		console.log("--- 感情データ送信中 ---");
-		console.log("色:", color);
-		console.log("緯度:", latitude);
-		console.log("経度:", longitude);
-		console.log("タイムスタンプ:", timestamp);
-		console.log("---------------------------");
+    color: string,
+    latitude: number,
+    longitude: number,
+    timestamp: string,
+): Promise<{ success: boolean; data?: any; message: string }> {
+    // 環境変数として設定
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+	//URLが設定されているかをチェック
+	if (!apiUrl) {
+        const errorMessage = "APIのURLが設定されていません。.env.localファイルを確認してください。";
+        console.error(errorMessage); // 開発者向けにコンソールにエラー出力
+        // URLがなければ、エラーメッセージを返して処理を中断
+        return {
+            success: false,
+            message: errorMessage,
+        };
+    }
+    // APIに送信するデータの組み立て
+    const payload = {
+        color,
+        latitude,
+        longitude,
+        timestamp,
+    };
 
-		// 実際のAPI呼び出しの代わりにダミー処理
-		await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+        console.log("--- 感情データ送信中 ---");
+        console.log("送信先API:", apiUrl);
+        console.log("送信データ:", payload);
+        console.log("---------------------------");
 
-		return {
-			success: true,
-			message: "感情データが送信されました！",
-		};
-	} catch (error) {
-		console.error("データ送信エラー:", error);
-		return {
-			success: false,
-			message: "データ送信中にエラーが発生しました。",
-		};
-	}
+        // リクエストを送信
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+        
+        // サーバーからの応答がチェック
+        if (!response.ok) {
+            // エラーの場合は、その内容を読み取って例外を発生
+            const errorBody = await response.text(); 
+            throw new Error(
+                `APIエラー: ステータス ${response.status}. 応答: ${errorBody}`
+            );
+        }
+
+        // 成功レスポンスのボディをJSONとしてパース
+        const responseData = await response.json();
+        console.log("APIからの成功応答:", responseData);
+
+        return {
+            success: true,
+            message: "感情データが正常に送信されました！",
+            //data: responseData, // サーバーからの応答データも一緒に返す
+        };
+
+    } catch (error) {
+        console.error("データ送信エラー:", error);
+        // エラーが起きた場合は、失敗を示すオブジェクトを返します
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return {
+            success: false,
+            message: `データ送信中にエラーが発生しました: ${errorMessage}`,
+        };
+    }
 }
 
 /**
