@@ -1,191 +1,744 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>マップ</title>
+    <title>感情クラウドマップ</title>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Tailwind CSS CDNを読み込み -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- InterフォントをGoogle Fontsから読み込み -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-      html, body {
-        height: 100%;
+      /* 全体的なページの基本スタイル */
+      body {
+        font-family: "Inter", sans-serif;
+        display: flex;
+        flex-direction: column; /* 要素を縦方向に並べる */
+        height: 100vh; /* ビューポートの高さ全体を使用 */
         margin: 0;
         padding: 0;
-        font-family: sans-serif;
+        overflow: hidden; /* 全体的なスクロールを禁止 */
       }
+
+      /* 地図コンテナのスタイル */
+      #map-container {
+        position: relative;
+        flex-grow: 1; /* 地図コンテナが利用可能なスペースをすべて占めるようにする */
+        width: 100%;
+        overflow: hidden; /* 地図のオーバーフローを隠す */
+      }
+
+      /* 地図要素のスタイル */
+      #map {
+        height: 100%;
+        width: 100%;
+      }
+
+      /* コントロールパネルのスタイル */
       #controls {
         position: absolute;
         top: 10px;
         left: 10px;
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.9); /* 半透明の白背景 */
         padding: 8px;
         border-radius: 8px;
-        z-index: 2;
+        z-index: 2; /* 地図の上に表示 */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* 影 */
       }
+
+      /* 地図操作モード切り替えボタンのスタイル */
       #toggleMapControl {
         position: absolute;
         top: 10px;
         right: 10px;
         padding: 6px 10px;
         border-radius: 8px;
-        z-index: 2;
+        z-index: 2; /* 地図の上に表示 */
+        background-color: #007aff; /* 青色の背景 */
+        color: white;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
       }
-      #map {
-        height: 100%;
+
+      /* 感情入力UIコンテナのスタイル */
+      #emotion-input-container {
+        position: fixed; /* 画面下部に固定 */
+        bottom: 0;
+        left: 0;
         width: 100%;
+        background: rgba(255, 255, 255, 0.95); /* 半透明の白背景 */
+        padding: 1rem 0;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); /* 上向きの影 */
+        z-index: 10; /* 他の要素の上に表示 */
+        display: flex;
+        flex-direction: column; /* 要素を縦方向に並べる */
+        align-items: center; /* 中央揃え */
+        gap: 0.75rem; /* 要素間の隙間 */
+      }
+
+      /* 感情アイコンのコンテナ */
+      #emotion-icons {
+        display: flex;
+        justify-content: center; /* 中央揃え */
+        gap: 1rem; /* アイコン間の隙間 */
+        width: 100%;
+        max-width: 500px; /* アイコンの最大幅を設定 */
+      }
+
+      /* 各感情アイコンのボタン */
+      .emotion-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 60px; /* 固定幅 */
+        height: 60px; /* 固定高さ */
+        background-color: #e0e0e0; /* デフォルトの背景色 */
+        border-radius: 50%; /* 円形 */
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.1s; /* 背景色と変形のトランジション */
+        flex-shrink: 0; /* アイコンが縮小しないようにする */
+        /* テキスト選択を無効にする */
+        -webkit-user-select: none; /* Safari */
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+ */
+        user-select: none; /* Standard */
+      }
+      .emotion-button:hover {
+        background-color: #d0d0d0; /* ホバー時の背景色 */
+      }
+
+      /* 感情絵文字のスタイル */
+      .emotion-emoji {
+        font-size: 2.5rem; /* 絵文字のサイズ */
+        line-height: 1; /* 行の高さを調整 */
+        transition: transform 0.1s;
+        /* テキスト選択を無効にする */
+        -webkit-user-select: none; /* Safari */
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+ */
+        user-select: none; /* Standard */
+      }
+
+      /* 確定ボタンのスタイル */
+      #submit-emotion {
+        padding: 0.75rem 2rem;
+        background-color: #28a745; /* 緑色 */
+        color: white;
+        border: none;
+        border-radius: 2rem; /* 丸みを帯びたボタン */
+        cursor: pointer;
+        font-size: 1.1rem;
+        font-weight: 600;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 影 */
+        transition: background-color 0.2s, transform 0.1s;
+        width: calc(100% - 2rem); /* 左右に1remずつパディングを考慮した幅 */
+        max-width: 400px; /* 最大幅を設定 */
+      }
+      #submit-emotion:hover {
+        background-color: #218838; /* ホバー時の背景色 */
+        transform: translateY(-2px); /* ホバー時に少し上に移動 */
+      }
+      #submit-emotion:active {
+        transform: translateY(0); /* クリック時に元に戻る */
+      }
+
+      /* メッセージボックスのオーバーレイとボックスのスタイル */
+      .message-box-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* 半透明の黒背景 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999; /* 最前面に表示 */
+      }
+      .message-box {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        text-align: center;
+        max-width: 80%;
+      }
+      .message-box button {
+        margin-top: 15px;
+        padding: 8px 20px;
+        background-color: #007aff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
       }
     </style>
   </head>
   <body>
-    <div id="controls">
-      表示範囲:
-      <select id="range">
-        <option value="20">20m</option>
-        <option value="50">50m</option>
-        <option value="100" selected>100m</option>
-      </select>
+    <!-- 地図とコントロールパネルのコンテナ -->
+    <div id="map-container">
+      <div id="controls">
+        表示範囲:
+        <select id="range" class="rounded-md p-1 border">
+          <option value="20">20m</option>
+          <option value="50">50m</option>
+          <option value="100" selected>100m</option>
+        </select>
+      </div>
+      <button id="toggleMapControl" class="rounded-md">
+        操作モードを有効にする
+      </button>
+      <div id="map"></div>
     </div>
-    <button id="toggleMapControl">操作モードを有効にする</button>
-    <div id="map"></div>
+
+    <!-- 感情入力UIコンテナ -->
+    <div id="emotion-input-container">
+      <div id="emotion-icons">
+        <button class="emotion-button" data-emotion="happy">
+          <span class="emotion-emoji">😊</span>
+        </button>
+        <button class="emotion-button" data-emotion="angry">
+          <span class="emotion-emoji">😠</span>
+        </button>
+        <button class="emotion-button" data-emotion="sad">
+          <span class="emotion-emoji">😢</span>
+        </button>
+        <button class="emotion-button" data-emotion="joy">
+          <span class="emotion-emoji">😄</span>
+        </button>
+      </div>
+      <button id="submit-emotion">感情を確定して送信</button>
+    </div>
 
     <script>
-      let map;
-      let currentLocation = null;
-      let mapLocked = true;
+      // グローバル変数定義
+      let map; // Googleマップオブジェクト
+      let currentLocation = null; // 現在地 (緯度・経度)
+      let mapLocked = true; // 地図の操作ロック状態
+      const markers = []; // 地図上の感情マーカーを管理する配列
 
+      // 地図のズームレベル設定 (距離とズームの対応)
       const zoomLevels = {
-        20: 20,
-        50: 19,
-        100: 18,
+        20: 20, // 20m ズームレベル20
+        50: 19, // 50m ズームレベル19
+        100: 18, // 100m ズームレベル18 (デフォルト)
       };
 
+      // 感情に関する状態管理
+      const emotionTapCounts = { happy: 0, angry: 0, sad: 0, joy: 0 }; // 各感情のタップ回数
+      const emotionLongPressDurations = { happy: 0, angry: 0, sad: 0, joy: 0 }; // 各感情の長押し時間 (ミリ秒)
+      let pressTimer; // 長押し判定用のタイマー
+      let lastInteractedEmotion = null; // 最後に操作された感情 (文字列: 'happy', 'angry'など)
+
+      /**
+       * カスタムメッセージボックスを表示する関数
+       * alert()の代わりにこれを使用し、ユーザーにメッセージを通知します。
+       * @param {string} message - 表示するメッセージ
+       */
+      function showMessageBox(message) {
+        const overlay = document.createElement("div");
+        overlay.className = "message-box-overlay";
+        const messageBox = document.createElement("div");
+        messageBox.className = "message-box";
+        messageBox.innerHTML = `<p>${message}</p><button>OK</button>`;
+        overlay.appendChild(messageBox);
+        document.body.appendChild(overlay);
+
+        // OKボタンがクリックされたらメッセージボックスを閉じる
+        messageBox.querySelector("button").onclick = () => {
+          document.body.removeChild(overlay);
+        };
+      }
+
+      /**
+       * Googleマップを初期化する関数。
+       * APIスクリプトが読み込まれた後にコールバックとして呼び出されます。
+       */
       function initMap() {
+        // 地図のカスタムスタイル (灰色でラベルなし) を定義
         const styledMapType = new google.maps.StyledMapType(
           [
             { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
             { elementType: "labels", stylers: [{ visibility: "off" }] },
             { featureType: "administrative", stylers: [{ visibility: "off" }] },
             { featureType: "poi", stylers: [{ visibility: "off" }] },
-            { featureType: "road", elementType: "geometry", stylers: [{ color: "#cccccc" }] },
+            {
+              featureType: "road",
+              elementType: "geometry",
+              stylers: [{ color: "#cccccc" }],
+            },
             { featureType: "transit", stylers: [{ visibility: "off" }] },
-            { featureType: "water", elementType: "geometry", stylers: [{ color: "#e0e0e0" }] }
+            {
+              featureType: "water",
+              elementType: "geometry",
+              stylers: [{ color: "#e0e0e0" }],
+            },
           ],
           { name: "Gray No Labels" }
         );
 
+        // 地図のインスタンスを作成
         map = new google.maps.Map(document.getElementById("map"), {
-          center: { lat: 35.681236, lng: 139.767125 },
+          center: { lat: 35.681236, lng: 139.767125 }, // 初期中心座標（東京）
           zoom: 18,
-          disableDefaultUI: true,
-          draggable: false,
-          gestureHandling: "none",
-          keyboardShortcuts: false,
+          disableDefaultUI: true, // デフォルトUIを無効にする
+          draggable: false, // デフォルトでドラッグを無効にする
+          gestureHandling: "none", // デフォルトでジェスチャーハンドリングを無効にする
+          keyboardShortcuts: false, // キーボードショートカットを無効にする
         });
 
+        // カスタムスタイルを地図に適用
         map.mapTypes.set("styled_map", styledMapType);
         map.setMapTypeId("styled_map");
 
-        // 操作切り替えボタンの処理
-        document.getElementById("toggleMapControl").addEventListener("click", function () {
-          mapLocked = !mapLocked;
+        // --- イベントリスナー設定 ---
 
-          map.setOptions({
-            draggable: !mapLocked,
-            gestureHandling: mapLocked ? "none" : "greedy",
-            zoomControl: !mapLocked,
-        });
+        // 地図操作モード切り替えボタンのイベントリスナー
+        document
+          .getElementById("toggleMapControl")
+          .addEventListener("click", function () {
+            mapLocked = !mapLocked; // ロック状態を切り替え
 
-        this.textContent = mapLocked
-            ? "操作モードを有効にする"
-            : "操作モードを終了する";
+            // 地図の操作オプションを更新 (ロック状態に応じてドラッグ、ジェスチャー、ズームコントロールを切り替え)
+            map.setOptions({
+              draggable: !mapLocked,
+              gestureHandling: mapLocked ? "none" : "greedy", // greedyは常にジェスチャーを処理
+              zoomControl: !mapLocked, // ズームコントロールの表示/非表示
+            });
 
-        // 操作モード終了時に中心を現在地に戻す
-        if (mapLocked && currentLocation) {
-            map.setCenter(currentLocation);
-        }
-    });
+            // ボタンのテキストを更新
+            this.textContent = mapLocked
+              ? "操作モードを有効にする"
+              : "操作モードを終了する";
+
+            // 操作モード終了時に地図の中心を現在地に戻す
+            if (mapLocked && currentLocation) {
+              map.setCenter(currentLocation);
+            }
+          });
 
         // 現在地取得とマーカー表示
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
+          navigator.geolocation.getCurrentPosition(
             (position) => {
-                currentLocation = {
+              currentLocation = {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude,
-            };
+              };
 
-            const selectedDistance = document.getElementById("range").value;
-            map.setCenter(currentLocation);
-            map.setZoom(zoomLevels[selectedDistance]);
+              const selectedDistance = document.getElementById("range").value;
+              map.setCenter(currentLocation); // 現在地を中心にする
+              map.setZoom(zoomLevels[selectedDistance]); // 選択された範囲でズーム
 
-            new google.maps.Marker({
+              // 現在地マーカーを追加 (青い円形アイコン)
+              new google.maps.Marker({
                 position: currentLocation,
                 map: map,
                 title: "あなたの現在地",
                 icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 7,
-                    fillColor: "#007AFF",
-                    fillOpacity: 1,
-                    strokeWeight: 2,
-                    strokeColor: "#ffffff",
+                  path: google.maps.SymbolPath.CIRCLE,
+                  scale: 7, // サイズ
+                  fillColor: "#007AFF", // 青色
+                  fillOpacity: 1, // 不透明度
+                  strokeWeight: 2, // 枠線の太さ
+                  strokeColor: "#ffffff", // 枠線の色
                 },
-            });
+              });
             },
-            () => alert("現在地を取得できませんでした。")
-        );
+            () =>
+              showMessageBox(
+                "現在地を取得できませんでした。ブラウザの設定を確認してください。"
+              )
+          );
         } else {
-            alert("このブラウザは位置情報に対応していません。");
+          showMessageBox("このブラウザは位置情報に対応していません。");
         }
 
-        // 範囲変更イベント
-        document.getElementById("range").addEventListener("change", function () {
+        // 表示範囲変更イベントリスナー
+        document
+          .getElementById("range")
+          .addEventListener("change", function () {
             const zoom = zoomLevels[this.value];
             if (map && currentLocation) {
-                map.setZoom(zoom);
+              // 地図と現在地がロードされていればズーム変更
+              map.setZoom(zoom);
             }
-        });
-    }
+          });
 
-    // POST処理関数
-    async function postDataToEmocloud(color, latitude, longitude, timestamp) {
-      const url = 'https://tyho3rn3ca.execute-api.ap-southeast-2.amazonaws.com/emocloudData';
+        // 定期的に感情マップデータをフェッチして表示 (10秒ごと)
+        setInterval(fetchAndDisplayEmotionMapData, 10000);
+      }
 
-      const payload = {
-        color,
-        latitude,
-        longitude,
-        timestamp
-      };
+      /**
+       * HSL (色相、彩度、明度) を HEX (16進数) 形式の色コードに変換する関数
+       * @param {number} h - 色相 (0-360)
+       * @param {number} s - 彩度 (0-100)
+       * @param {number} l - 明度 (0-100)
+       * @returns {string} HEX形式の色コード (例: "#RRGGBB")
+       */
+      function hslToHex(h, s, l) {
+        h /= 360;
+        s /= 100;
+        l /= 100;
+        let r, g, b;
+        if (s === 0) {
+          r = g = b = l; // 無彩色 (灰色)
+        } else {
+          const hue2rgb = (p, q, t) => {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6) return p + (q - p) * 6 * t;
+            if (t < 1 / 2) return q;
+            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+            return p;
+          };
+          const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+          const p = 2 * l - q;
+          r = hue2rgb(p, q, h + 1 / 3);
+          g = hue2rgb(p, q, h);
+          b = hue2rgb(p, q, h - 1 / 3);
+        }
+        const toHex = (x) => {
+          const hex = Math.round(x * 255).toString(16);
+          return hex.length === 1 ? "0" + hex : hex;
+        };
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+      }
 
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
+      /**
+       * 感情、タップ回数、長押し時間に基づいてHEX形式の色コードを生成する関数
+       * @param {string} emotion - 感情の種類 ('happy', 'angry'など)
+       * @param {number} tapCount - タップ回数
+       * @param {number} longPressDuration - 長押し時間 (ミリ秒)
+       * @returns {string} 生成されたHEX色コード
+       */
+      function generateColorCode(emotion, tapCount, longPressDuration) {
+        let hue, saturation, lightness;
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        // 感情の種類に応じて色相 (Hue) を設定
+        switch (emotion) {
+          case "happy":
+            hue = 60;
+            break; // 笑顔: 黄色系
+          case "angry":
+            hue = 0;
+            break; // 怒り: 赤色系
+          case "sad":
+            hue = 240;
+            break; // 悲しみ: 青色系
+          case "joy":
+            hue = 120;
+            break; // 喜び: 緑色系
+          default:
+            hue = 0; // 未知の感情の場合は赤
         }
 
-        const text = await response.text();
-        const parsed = JSON.parse(text);
-        console.log('送信成功:', parsed);
-        return parsed;
+        // タップ回数と長押し時間に基づいて彩度 (Saturation) と明度 (Lightness) を調整
+        // タップ回数が多いほど彩度を高く、長押し時間が長いほど明度を高く
+        saturation = Math.min(100, 50 + tapCount * 5); // 彩度: 最小50, 最大100
+        lightness = Math.min(90, 50 + longPressDuration / 100); // 明度: 最小50, 最大90
 
-      } catch (error) {
-        console.error('送信エラー:', error.message);
-        return null;
+        return hslToHex(hue, saturation, lightness);
       }
-    }
 
+      // --- 感情アイコンのイベントリスナー設定 ---
+      document.querySelectorAll(".emotion-button").forEach((button) => {
+        const emotion = button.dataset.emotion; // ボタンに設定された感情名 (例: 'happy')
+        let pressStartTime = 0; // ボタンが押された時刻
+        let isLongPress = false; // 長押しが発生したかどうかのフラグ
 
+        // タッチ開始 / マウスダウン時の処理
+        const handlePressStart = (e, btn, emo) => {
+          e.preventDefault(); // デフォルトのイベント（テキスト選択、スクロールなど）を防止
+          lastInteractedEmotion = emo; // 最後に操作された感情を記録
+          pressStartTime = new Date().getTime(); // 押下開始時刻を記録
+          isLongPress = false; // 長押しフラグをリセット
+
+          // 既存の長押しタイマーがあればクリアし、新しいタイマーを開始
+          clearTimeout(pressTimer);
+          pressTimer = setTimeout(() => {
+            isLongPress = true; // 長押しと判定
+            const duration = new Date().getTime() - pressStartTime;
+            emotionLongPressDurations[emo] = duration; // 長押し時間を記録
+            console.log(`${emo} 長押し時間: ${duration}ms`);
+
+            // 長押しが確定したら、その時点の長押し時間を反映した色を適用
+            const currentColor = generateColorCode(
+              emo,
+              emotionTapCounts[emo],
+              emotionLongPressDurations[emo]
+            );
+            btn.style.backgroundColor = currentColor;
+          }, 500); // 500ms以上で長押しと判定
+
+          // ボタンが押された直後に色を変化させる（即座の視覚フィードバック）
+          // この時点では長押し時間は0として色を生成
+          const currentColorOnPress = generateColorCode(
+            emo,
+            emotionTapCounts[emo],
+            0
+          );
+          btn.style.backgroundColor = currentColorOnPress;
+        };
+
+        // タッチ終了 / マウスアップ時の処理
+        const handlePressEnd = (btn, emo) => {
+          clearTimeout(pressTimer); // 長押しタイマーを停止
+          pressTimer = null;
+
+          if (!isLongPress) {
+            // 短いタップの場合のみタップ回数を増やす
+            emotionTapCounts[emo]++; // タップ回数をカウント
+            console.log(`${emo} タップ回数: ${emotionTapCounts[emo]}`);
+          } else {
+            // 長押し後のリリースでは、既に長押し時間が記録されているため、タップ回数は増やさない
+          }
+          isLongPress = false; // 長押しフラグをリセット
+
+          // 指/マウスを離したら元の色に戻す (CSSトランジションで徐々に薄くなる効果)
+          btn.style.backgroundColor = "#e0e0e0";
+        };
+
+        // イベントリスナーの追加
+        button.addEventListener("touchstart", (e) =>
+          handlePressStart(e, button, emotion)
+        );
+        button.addEventListener("mousedown", (e) =>
+          handlePressStart(e, button, emotion)
+        );
+        button.addEventListener("touchend", () =>
+          handlePressEnd(button, emotion)
+        );
+        button.addEventListener("mouseup", () =>
+          handlePressEnd(button, emotion)
+        );
+        // マウスがボタンから離れた場合も色を戻す (PCユーザー向け)
+        button.addEventListener("mouseleave", () => {
+          if (pressTimer) {
+            // 長押しタイマーがアクティブな場合のみ
+            clearTimeout(pressTimer);
+            pressTimer = null;
+          }
+          button.style.backgroundColor = "#e0e0e0"; // 色をリセット
+          isLongPress = false; // フラグもリセット
+        });
+      });
+
+      // --- 確定ボタンのイベントリスナー ---
+      document
+        .getElementById("submit-emotion")
+        .addEventListener("click", async () => {
+          // 最後に操作された感情が選択されているか確認
+          if (!lastInteractedEmotion) {
+            showMessageBox(
+              "まず感情アイコンをタップまたは長押ししてください。"
+            );
+            return;
+          }
+          // 現在地が取得できているか確認
+          if (!currentLocation) {
+            showMessageBox(
+              "現在地が取得できませんでした。位置情報の許可を確認してください。"
+            );
+            return;
+          }
+
+          // 感情の色コードを生成
+          const colorCode = generateColorCode(
+            lastInteractedEmotion, // 最後に操作された感情のデータを使用
+            emotionTapCounts[lastInteractedEmotion],
+            emotionLongPressDurations[lastInteractedEmotion]
+          );
+          const timestamp = new Date().toISOString(); // 現在時刻をISO 8601形式で取得
+
+          // 緯度・経度を小数点以下6桁に丸める
+          const roundedLatitude = parseFloat(currentLocation.lat.toFixed(6));
+          const roundedLongitude = parseFloat(currentLocation.lng.toFixed(6));
+
+          // 送信するデータオブジェクトを作成
+          const data = {
+            color: colorCode,
+            latitude: roundedLatitude,
+            longitude: roundedLongitude,
+            timestamp: timestamp,
+          };
+
+          console.log("送信データ:", data);
+
+          // --- データ送信処理 (ダミー) ---
+          // 実際にはバックエンドAPIへPOSTリクエストを送信します
+          try {
+            // const response = await fetch('/api/emotion', { // 実際のAPIエンドポイント
+            //   method: 'POST',
+            //   headers: { 'Content-Type': 'application/json' },
+            //   body: JSON.stringify(data)
+            // });
+            // if (!response.ok) {
+            //   const errorText = await response.text();
+            //   throw new Error(`HTTP ${response.status}: ${errorText}`);
+            // }
+            // const result = await response.json();
+            // console.log('送信成功:', result);
+
+            // 現段階ではダミーAPI呼び出し (実際には外部にリクエストを送らず成功をシミュレート)
+            const response = await postDataToEmocloud(
+              data.color,
+              data.latitude,
+              data.longitude,
+              data.timestamp
+            );
+            if (response) {
+              // ダミー関数が成功を返した場合
+              showMessageBox("感情データが送信されました！");
+              // 送信後、すべての感情のタップ回数と長押し時間をリセット
+              for (const key in emotionTapCounts) {
+                emotionTapCounts[key] = 0;
+                emotionLongPressDurations[key] = 0;
+              }
+              lastInteractedEmotion = null; // 最後に操作された感情もリセット
+            } else {
+              showMessageBox(
+                "感情データの送信に失敗しました。ネットワーク接続を確認してください。"
+              );
+            }
+          } catch (error) {
+            console.error("データ送信エラー:", error);
+            showMessageBox("データ送信中にエラーが発生しました。");
+          }
+        });
+
+      /**
+       * ダミーのPOST処理関数
+       * 実際のバックエンドAPIへの呼び出しをシミュレートします。
+       * @param {string} color - 色コード
+       * @param {number} latitude - 緯度
+       * @param {number} longitude - 経度
+       * @param {string} timestamp - タイムスタンプ
+       * @returns {Promise<object|null>} 成功した場合はデータ、失敗した場合はnullを解決するPromise
+       */
+      async function postDataToEmocloud(color, latitude, longitude, timestamp) {
+        // 注: このURLはダミーです。実際のバックエンドAPIエンドポイントに置き換えてください。
+        // const url = 'https://tyho3rn3ca.execute-api.ap-southeast-2.amazonaws.com/emocloudData';
+
+        console.log("--- ダミーPOST処理実行中 ---");
+        console.log("色:", color);
+        console.log("緯度:", latitude);
+        console.log("経度:", longitude);
+        console.log("タイムスタンプ:", timestamp);
+        console.log("---------------------------");
+
+        // 成功をシミュレートするPromise (500msの遅延を伴う)
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({
+              message: "Dummy POST successful",
+              data: { color, latitude, longitude, timestamp },
+            });
+          }, 500);
+        });
+      }
+
+      /**
+       * ダミーの感情マップデータを取得する関数
+       * 実際にはバックエンドAPIから他のユーザーの感情データをフェッチします。
+       * @returns {Promise<Array<object>>} ダミーの感情データ配列を解決するPromise
+       */
+      async function fetchEmotionMapData() {
+        console.log("感情マップデータをフェッチ中...");
+        // ダミーデータを返す (現在地周辺にランダムな感情マーカーを生成)
+        const dummyData = [
+          {
+            color: "#FF0000",
+            latitude: 35.681236 + (Math.random() - 0.5) * 0.01,
+            longitude: 139.767125 + (Math.random() - 0.5) * 0.01,
+            timestamp: new Date().toISOString(),
+          },
+          {
+            color: "#00FF00",
+            latitude: 35.681236 + (Math.random() - 0.5) * 0.01,
+            longitude: 139.767125 + (Math.random() - 0.5) * 0.01,
+            timestamp: new Date().toISOString(),
+          },
+          {
+            color: "#0000FF",
+            latitude: 35.681236 + (Math.random() - 0.5) * 0.01,
+            longitude: 139.767125 + (Math.random() - 0.5) * 0.01,
+            timestamp: new Date().toISOString(),
+          },
+          {
+            color: "#FFFF00",
+            latitude: 35.681236 + (Math.random() - 0.5) * 0.01,
+            longitude: 139.767125 + (Math.random() - 0.5) * 0.01,
+            timestamp: new Date().toISOString(),
+          },
+          {
+            color: "#FF00FF",
+            latitude: 35.681236 + (Math.random() - 0.5) * 0.01,
+            longitude: 139.767125 + (Math.random() - 0.5) * 0.01,
+            timestamp: new Date().toISOString(),
+          },
+          {
+            color: "#00FFFF",
+            latitude: 35.681236 + (Math.random() - 0.5) * 0.01,
+            longitude: 139.767125 + (Math.random() - 0.5) * 0.01,
+            timestamp: new Date().toISOString(),
+          },
+        ];
+        return new Promise((resolve) =>
+          setTimeout(() => resolve(dummyData), 1000)
+        ); // 1秒の遅延をシミュレート
+      }
+
+      /**
+       * 地図上の既存の感情マーカーをすべてクリアする関数
+       */
+      function clearMarkers() {
+        for (let i = 0; i < markers.length; i++) {
+          markers[i].setMap(null); // マーカーを地図から削除
+        }
+        markers.length = 0; // マーカー配列を空にする
+      }
+
+      /**
+       * 感情マップデータをフェッチし、地図上に表示する関数
+       */
+      async function fetchAndDisplayEmotionMapData() {
+        const emotionData = await fetchEmotionMapData(); // 感情データを取得
+        if (emotionData && map) {
+          clearMarkers(); // 既存のマーカーをクリア
+
+          emotionData.forEach((data) => {
+            // 各データポイントに対して感情マーカーを追加
+            const marker = new google.maps.Marker({
+              position: { lat: data.latitude, lng: data.longitude },
+              map: map,
+              icon: {
+                path: google.maps.SymbolPath.CIRCLE, // 円形アイコン
+                scale: 10, // マーカーのサイズ
+                fillColor: data.color, // 感情の色コード
+                fillOpacity: 0.7, // 不透明度
+                strokeWeight: 1, // 枠線の太さ
+                strokeColor: "#ffffff", // 枠線の色
+              },
+              title: `感情: ${data.color}, 時刻: ${new Date(
+                data.timestamp
+              ).toLocaleString()}`, // マーカーのツールチップ
+            });
+            markers.push(marker); // マーカーを配列に追加
+          });
+        }
+      }
     </script>
 
     <script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC0gZqkL68rgvnjUU7fNmVfRyydR-lDBaA&callback=initMap"
-        async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC0gZqkL68rgvnjUU7fNmVfRyydR-lDBaA&callback=initMap"
+      async
+      defer
     ></script>
-    </body>
+  </body>
 </html>
