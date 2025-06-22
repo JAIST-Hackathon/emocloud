@@ -77,3 +77,4 @@ tmp/               # 一時ファイルを格納する共通ディレクトリ
 *.p12              # P12形式の証明書/鍵ファイル
 # my_project_specific_data.db # プロジェクト固有のローカルDBファイルなど
 # /user_uploads/             # ユーザーアップロードディレクトリなど
+node_modules
