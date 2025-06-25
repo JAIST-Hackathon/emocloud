@@ -175,7 +175,7 @@ emoCloudをローカル環境でセットアップし、実行するための手
 - [Kensuke.M](@KensukeM39)
 - [masabot](@fmasa-penguin224)
 - [sato](sato7f)
-- [AkinoriYoshiba]()
+- [A.Yoshiba](AkinoriYoshiba)
 - [Yusei Murakami](@M-Yusei1001)
 
 ## Special Thanks
